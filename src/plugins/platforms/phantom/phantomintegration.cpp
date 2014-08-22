@@ -52,6 +52,8 @@
 
 #include <QtPlatformSupport/private/qgenericunixeventdispatcher_p.h>
 
+QT_BEGIN_NAMESPACE
+
 PhantomIntegration::PhantomIntegration()
 {
     PhantomScreen *mPrimaryScreen = new PhantomScreen();
@@ -118,3 +120,5 @@ QPlatformNativeInterface *PhantomIntegration::nativeInterface() const
 {
     return m_phantomPlatformNativeInterface;
 }
+
+QT_END_NAMESPACE

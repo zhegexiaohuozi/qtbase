@@ -43,6 +43,8 @@
 #include <qpa/qplatformintegrationplugin.h>
 #include "phantomintegration.h"
 
+QT_BEGIN_NAMESPACE
+
 class PhantomIntegrationPlugin : public QPlatformIntegrationPlugin
 {
     Q_OBJECT

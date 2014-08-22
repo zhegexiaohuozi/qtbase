@@ -44,6 +44,8 @@
 #include <qpa/qplatformscreen.h>
 #include <private/qguiapplication_p.h>
 
+QT_BEGIN_NAMESPACE
+
 PhantomBackingStore::PhantomBackingStore(QWindow *window)
     : QPlatformBackingStore(window)
 {
@@ -71,3 +73,5 @@ void PhantomBackingStore::resize(const QSize &size, const QRegion &)
     if (mImage.size() != size)
         mImage = QImage(size, format);
 }
+
+QT_END_NAMESPACE

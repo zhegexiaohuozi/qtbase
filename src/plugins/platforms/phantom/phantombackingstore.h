@@ -46,6 +46,8 @@
 #include <qpa/qplatformwindow.h>
 #include <QImage>
 
+QT_BEGIN_NAMESPACE
+
 class PhantomBackingStore : public QPlatformBackingStore
 {
 public:
@@ -59,5 +61,7 @@ public:
 private:
     QImage mImage;
 };
+
+QT_END_NAMESPACE
 
 #endif // PHANTOMBACKINGSTORE_H

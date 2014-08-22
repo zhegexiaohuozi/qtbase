@@ -48,6 +48,8 @@
 
 #include <QPixmap>
 
+QT_BEGIN_NAMESPACE
+
 class QWindowSurface;
 
 class PhantomPlatformNativeInterface : public QPlatformNativeInterface
@@ -91,5 +93,7 @@ public:
 private:
     PhantomPlatformNativeInterface *m_phantomPlatformNativeInterface;
 };
+
+QT_END_NAMESPACE
 
 #endif // PHANTOMINTEGRATION_H
