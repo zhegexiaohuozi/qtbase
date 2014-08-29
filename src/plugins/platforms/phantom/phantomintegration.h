@@ -44,36 +44,13 @@
 
 #include <qpa/qplatformintegration.h>
 #include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformscreen.h>
 
-#include <QPixmap>
+#include <QScopedPointer>
 
 QT_BEGIN_NAMESPACE
 
 class QWindowSurface;
-
-class PhantomPlatformNativeInterface : public QPlatformNativeInterface
-{
-public:
-};
-
-class PhantomScreen : public QPlatformScreen
-{
-public:
-    PhantomScreen()
-        : mDepth(32), mFormat(QImage::Format_ARGB32_Premultiplied) {}
-
-    QRect geometry() const { return mGeometry; }
-    QSizeF physicalSize() const { return mPhysicalSize; }
-    int depth() const { return mDepth; }
-    QImage::Format format() const { return mFormat; }
-
-public:
-    QRect mGeometry;
-    int mDepth;
-    QImage::Format mFormat;
-    QSizeF mPhysicalSize;
-};
+class PhantomNativeInterface;
 
 class PhantomIntegration : public QPlatformIntegration
 {
@@ -91,7 +68,7 @@ public:
     QPlatformNativeInterface *nativeInterface() const;
 
 private:
-    PhantomPlatformNativeInterface *m_phantomPlatformNativeInterface;
+    QScopedPointer<PhantomNativeInterface> m_nativeInterface;
 };
 
 QT_END_NAMESPACE
