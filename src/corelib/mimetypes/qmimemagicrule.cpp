@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -36,6 +36,9 @@
 
 #include "qmimemagicrule_p.h"
 
+#ifndef QT_NO_MIMETYPE
+
+#include "qmimetypeparser_p.h"
 #include <QtCore/QList>
 #include <QtCore/QDebug>
 #include <qendian.h>
@@ -215,6 +218,8 @@ static inline QByteArray makePattern(const QByteArray &value)
                 *data++ = '\n';
             } else if (*p == 'r') {
                 *data++ = '\r';
+            } else if (*p == 't') {
+                *data++ = '\t';
             } else { // escaped
                 *data++ = *p;
             }
@@ -227,26 +232,53 @@ static inline QByteArray makePattern(const QByteArray &value)
     return pattern;
 }
 
-QMimeMagicRule::QMimeMagicRule(QMimeMagicRule::Type theType,
+// Evaluate a magic match rule like
+//  <match value="must be converted with BinHex" type="string" offset="11"/>
+//  <match value="0x9501" type="big16" offset="0:64"/>
+
+QMimeMagicRule::QMimeMagicRule(const QString &typeStr,
                                const QByteArray &theValue,
-                               int theStartPos,
-                               int theEndPos,
-                               const QByteArray &theMask) :
+                               const QString &offsets,
+                               const QByteArray &theMask,
+                               QString *errorString) :
     d(new QMimeMagicRulePrivate)
 {
-    Q_ASSERT(!theValue.isEmpty());
-
-    d->type = theType;
     d->value = theValue;
-    d->startPos = theStartPos;
-    d->endPos = theEndPos;
     d->mask = theMask;
     d->matchFunction = 0;
+
+    d->type = QMimeMagicRule::type(typeStr.toLatin1());
+    if (d->type == Invalid) {
+        *errorString = QStringLiteral("Type %s is not supported").arg(typeStr);
+    }
+
+    // Parse for offset as "1" or "1:10"
+    const int colonIndex = offsets.indexOf(QLatin1Char(':'));
+    const QString startPosStr = colonIndex == -1 ? offsets : offsets.mid(0, colonIndex);
+    const QString endPosStr   = colonIndex == -1 ? offsets : offsets.mid(colonIndex + 1);
+    if (!QMimeTypeParserBase::parseNumber(startPosStr, &d->startPos, errorString) ||
+        !QMimeTypeParserBase::parseNumber(endPosStr, &d->endPos, errorString)) {
+        d->type = Invalid;
+        return;
+    }
+
+    if (d->value.isEmpty()) {
+        d->type = Invalid;
+        if (errorString)
+            *errorString = QLatin1String("Invalid empty magic rule value");
+        return;
+    }
 
     if (d->type >= Host16 && d->type <= Byte) {
         bool ok;
         d->number = d->value.toUInt(&ok, 0); // autodetect
-        Q_ASSERT(ok);
+        if (!ok) {
+            d->type = Invalid;
+            if (errorString)
+                *errorString = QString::fromLatin1("Invalid magic rule value \"%1\"").arg(
+                        QString::fromLatin1(d->value));
+            return;
+        }
         d->numberMask = !d->mask.isEmpty() ? d->mask.toUInt(&ok, 0) : 0; // autodetect
     }
 
@@ -255,9 +287,23 @@ QMimeMagicRule::QMimeMagicRule(QMimeMagicRule::Type theType,
         d->pattern = makePattern(d->value);
         d->pattern.squeeze();
         if (!d->mask.isEmpty()) {
-            Q_ASSERT(d->mask.size() >= 4 && d->mask.startsWith("0x"));
-            d->mask = QByteArray::fromHex(QByteArray::fromRawData(d->mask.constData() + 2, d->mask.size() - 2));
-            Q_ASSERT(d->mask.size() == d->pattern.size());
+            if (d->mask.size() < 4 || !d->mask.startsWith("0x")) {
+                d->type = Invalid;
+                if (errorString)
+                    *errorString = QString::fromLatin1("Invalid magic rule mask \"%1\"").arg(
+                            QString::fromLatin1(d->mask));
+                return;
+            }
+            const QByteArray &tempMask = QByteArray::fromHex(QByteArray::fromRawData(
+                                                     d->mask.constData() + 2, d->mask.size() - 2));
+            if (tempMask.size() != d->pattern.size()) {
+                d->type = Invalid;
+                if (errorString)
+                    *errorString = QString::fromLatin1("Invalid magic rule mask size \"%1\"").arg(
+                            QString::fromLatin1(d->mask));
+                return;
+            }
+            d->mask = tempMask;
         } else {
             d->mask.fill(char(-1), d->pattern.size());
         }
@@ -377,3 +423,5 @@ bool QMimeMagicRule::matches(const QByteArray &data) const
 }
 
 QT_END_NAMESPACE
+
+#endif // QT_NO_MIMETYPE

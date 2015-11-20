@@ -1,7 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Klaralvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author David Faure <david.faure@kdab.com>
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -10,9 +11,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +24,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -32,6 +33,8 @@
 ****************************************************************************/
 
 #include "qmimeprovider_p.h"
+
+#ifndef QT_NO_MIMETYPE
 
 #include "qmimetypeparser_p.h"
 #include <qstandardpaths.h>
@@ -77,10 +80,9 @@ Q_CORE_EXPORT int qmime_secondsBetweenChecks = 5; // exported for the unit test
 
 bool QMimeProviderBase::shouldCheck()
 {
-    const QDateTime now = QDateTime::currentDateTime();
-    if (m_lastCheck.isValid() && m_lastCheck.secsTo(now) < qmime_secondsBetweenChecks)
+    if (m_lastCheck.isValid() && m_lastCheck.elapsed() < qmime_secondsBetweenChecks * 1000)
         return false;
-    m_lastCheck = now;
+    m_lastCheck.start();
     return true;
 }
 
@@ -559,10 +561,13 @@ void QMimeBinaryProvider::loadMimeTypePrivate(QMimeTypePrivate &data)
     // load comment and globPatterns
 
     const QString file = data.name + QLatin1String(".xml");
-    const QStringList mimeFiles = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QString::fromLatin1("mime/") + file);
+    // shared-mime-info since 1.3 lowercases the xml files
+    QStringList mimeFiles = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QString::fromLatin1("mime/") + file.toLower());
     if (mimeFiles.isEmpty()) {
-        // TODO: ask Thiago about this
-        qWarning() << "No file found for" << file << ", even though the file appeared in a directory listing.";
+        mimeFiles = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QString::fromLatin1("mime/") + file); // pre-1.3
+    }
+    if (mimeFiles.isEmpty()) {
+        qWarning() << "No file found for" << file << ", even though update-mime-info said it would exist.";
         qWarning() << "Either it was just removed, or the directory doesn't have executable permission...";
         qWarning() << QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QLatin1String("mime"), QStandardPaths::LocateDirectory);
         return;
@@ -623,7 +628,7 @@ void QMimeBinaryProvider::loadMimeTypePrivate(QMimeTypePrivate &data)
     // Let's assume that shared-mime-info is at least version 0.70
     // Otherwise we would need 1) a version check, and 2) code for parsing patterns from the globs file.
 #if 1
-    if (!mainPattern.isEmpty() && data.globPatterns.first() != mainPattern) {
+    if (!mainPattern.isEmpty() && (data.globPatterns.isEmpty() || data.globPatterns.first() != mainPattern)) {
         // ensure it's first in the list of patterns
         data.globPatterns.removeAll(mainPattern);
         data.globPatterns.prepend(mainPattern);
@@ -866,3 +871,5 @@ void QMimeXMLProvider::addMagicMatcher(const QMimeMagicRuleMatcher &matcher)
 }
 
 QT_END_NAMESPACE
+
+#endif // QT_NO_MIMETYPE

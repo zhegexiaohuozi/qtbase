@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -69,24 +69,28 @@ static const char formatTextHtmlC[] = "text/html";
     \ingroup qt-lighthouse-win
 */
 
-QDebug operator<<(QDebug d, const QMimeData &m)
+static QDebug operator<<(QDebug d, const QMimeData *mimeData)
 {
-    QDebug nospace = d.nospace();
-    const QStringList formats = m.formats();
-    nospace << "QMimeData: " << formats.join(QStringLiteral(", ")) << '\n'
-            << "  Text=" << m.hasText() << " HTML=" << m.hasHtml()
-            << " Color=" << m.hasColor() << " Image=" << m.hasImage()
-            << " URLs=" << m.hasUrls() << '\n';
-    if (m.hasText())
-        nospace << "  Text: '" << m.text() << "'\n";
-    if (m.hasHtml())
-        nospace << "  HTML: '" << m.html() << "'\n";
-    if (m.hasColor())
-        nospace << "  Color: " << qvariant_cast<QColor>(m.colorData()) << '\n';
-    if (m.hasImage())
-        nospace << "  Image: " << qvariant_cast<QImage>(m.imageData()).size() << '\n';
-    if (m.hasUrls())
-        nospace << "  URLs: " << m.urls() << '\n';
+    QDebugStateSaver saver(d);
+    d.nospace();
+    d << "QMimeData(";
+    if (mimeData) {
+        const QStringList formats = mimeData->formats();
+        d << "formats=" << formats.join(QStringLiteral(", "));
+        if (mimeData->hasText())
+            d << ", text=" << mimeData->text();
+        if (mimeData->hasHtml())
+            d << ", html=" << mimeData->html();
+        if (mimeData->hasColor())
+            d << ", colorData=" << qvariant_cast<QColor>(mimeData->colorData());
+        if (mimeData->hasImage())
+            d << ", imageData=" << qvariant_cast<QImage>(mimeData->imageData());
+        if (mimeData->hasUrls())
+             d << ", urls=" << mimeData->urls();
+    } else {
+        d << '0';
+    }
+    d << ')';
     return d;
 }
 
@@ -296,7 +300,7 @@ QMimeData *QWindowsClipboard::mimeData(QClipboard::Mode mode)
 
 void QWindowsClipboard::setMimeData(QMimeData *mimeData, QClipboard::Mode mode)
 {
-    qCDebug(lcQpaMime) << __FUNCTION__ <<  mode << *mimeData;
+    qCDebug(lcQpaMime) << __FUNCTION__ <<  mode << mimeData;
     if (mode != QClipboard::Clipboard)
         return;
 

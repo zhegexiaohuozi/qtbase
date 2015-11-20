@@ -58,9 +58,11 @@
         VCLIBS = Microsoft.VCLibs.$$replace(MSVC_VER, \\., ).00
         winphone: VCLIBS = $${VCLIBS}.Phone
         CONFIG(debug, debug|release): \
-            WINRT_MANIFEST.dependencies += $${VCLIBS}.Debug
+            VCLIBS = $${VCLIBS}.Debug
         else: \
-            WINRT_MANIFEST.dependencies += $$VCLIBS
+            VCLIBS = $${VCLIBS}
+        contains(MSVC_VER, "14.0"): VCLIBS = "$${VCLIBS}\" MinVersion=\"14.0.0.0\" Publisher=\"CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+        WINRT_MANIFEST.dependencies += $$VCLIBS
     }
 
     # Provide default values for required variables
@@ -71,7 +73,9 @@
         exists($$UUID_CACHE) {
             include($$UUID_CACHE)
         } else {
-            WINRT_UUID = "WINRT_MANIFEST.identity = $$system(uuidgen)"
+            WINRT_UUID = $$system(uuidgen)
+            isEmpty(WINRT_UUID): error("Unable to generate a UUID. Make sure uuidgen is in your PATH.")
+            WINRT_UUID = "WINRT_MANIFEST.identity = $$WINRT_UUID"
             write_file($$UUID_CACHE, WINRT_UUID)|error("Unable to write the UUID cache; aborting.")
             eval($$WINRT_UUID)
         }
@@ -120,12 +124,11 @@
     }
 
     # Dependencies are given as a string list. The CRT dependency is added automatically above.
+    # For MSVC2015 the dependencies are added in conjunction with TargetDeviceFamily
     WINRT_MANIFEST.dependencies = $$unique(WINRT_MANIFEST.dependencies)
     !isEmpty(WINRT_MANIFEST.dependencies) {
-        MANIFEST_DEPENDENCIES += "<Dependencies>"
         for(DEPENDENCY, WINRT_MANIFEST.dependencies): \
             MANIFEST_DEPENDENCIES += "  <PackageDependency Name=\"$$DEPENDENCY\" />"
-        MANIFEST_DEPENDENCIES += "</Dependencies>"
 
         WINRT_MANIFEST.dependencies = $$join(MANIFEST_DEPENDENCIES, $$INDENT, $$INDENT)
     }
@@ -137,12 +140,32 @@
     ICONS_FOUND ~= s/.*\\\$\\\$\\{WINRT_MANIFEST\\.((logo|tile)_[^\}]+)\\}.*/\\1/g
     for (ICON_NAME, ICONS_FOUND) {
         ICON_FILE = $$eval(WINRT_MANIFEST.$$ICON_NAME)
+        isEmpty(ICON_FILE) {
+            equals(ICON_NAME, "logo_310x150"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_wide)
+            else: equals(ICON_NAME, "logo_150x150"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_large)
+            # Windows Phone specifics
+            else: equals(ICON_NAME, "logo_480x800"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_splash)
+            else: equals(ICON_NAME, "logo_71x71"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_medium)
+            else: equals(ICON_NAME, "logo_44x44"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_small)
+            # Windows RT specifics
+            else: equals(ICON_NAME, "logo_620x300"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_splash)
+            else: equals(ICON_NAME, "logo_70x70"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_medium)
+            else: equals(ICON_NAME, "logo_30x30"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_small)
+        }
         isEmpty(ICON_FILE): ICON_FILE = $$WINRT_ASSETS_PATH/$${ICON_NAME}.png
         icon_$${ICON_NAME}.input = $$ICON_FILE
         icon_$${ICON_NAME}.output = $$BUILD_DIR/assets/$$basename(ICON_FILE)
         icon_$${ICON_NAME}.CONFIG = verbatim
         QMAKE_SUBSTITUTES += icon_$${ICON_NAME}
         WINRT_MANIFEST.$${ICON_NAME} = assets/$$basename(ICON_FILE)
+    }
+
+    !contains(TEMPLATE, "vc.*") {
+        winrt_manifest_install.files = $$manifest_file.output
+        winrt_manifest_install.path = $$target.path
+        winrt_assets_install.files = $$BUILD_DIR/assets/*
+        winrt_assets_install.path = $$target.path/assets
+        INSTALLS += winrt_manifest_install winrt_assets_install
     }
 
     QMAKE_SUBSTITUTES += manifest_file

@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -53,13 +53,7 @@
 #endif
 #endif
 
-//#define NTLMV1_CLIENT
-
 QT_BEGIN_NAMESPACE
-
-#ifdef NTLMV1_CLIENT
-#include "../../3rdparty/des/des.cpp"
-#endif
 
 static QByteArray qNtlmPhase1();
 static QByteArray qNtlmPhase3(QAuthenticatorPrivate *ctx, const QByteArray& phase2data);
@@ -91,6 +85,7 @@ static QByteArray qNtlmPhase3_SSPI(QAuthenticatorPrivate *ctx, const QByteArray&
     \li Digest-MD5
   \endlist
 
+  \target qauthenticator-options
   \section1 Options
 
   In addition to the username and password required for authentication, a
@@ -110,8 +105,8 @@ static QByteArray qNtlmPhase3_SSPI(QAuthenticatorPrivate *ctx, const QByteArray&
   \section2 Basic
 
   \table
-    \header \li Option \li Direction \li Description
-    \row \li \tt{realm} \li Incoming \li Contains the realm of the authentication, the same as realm()
+    \header \li Option \li Direction \li Type \li Description
+    \row \li \tt{realm} \li Incoming \li QString \li Contains the realm of the authentication, the same as realm()
   \endtable
 
   The Basic authentication mechanism supports no outgoing options.
@@ -125,8 +120,8 @@ static QByteArray qNtlmPhase3_SSPI(QAuthenticatorPrivate *ctx, const QByteArray&
   \section2 Digest-MD5
 
   \table
-    \header \li Option \li Direction \li Description
-    \row \li \tt{realm} \li Incoming \li Contains the realm of the authentication, the same as realm()
+    \header \li Option \li Direction \li Type \li Description
+    \row \li \tt{realm} \li Incoming \li QString \li Contains the realm of the authentication, the same as realm()
   \endtable
 
   The Digest-MD5 authentication mechanism supports no outgoing options.
@@ -136,7 +131,7 @@ static QByteArray qNtlmPhase3_SSPI(QAuthenticatorPrivate *ctx, const QByteArray&
 
 
 /*!
-  Constructs an empty authentication object
+  Constructs an empty authentication object.
 */
 QAuthenticator::QAuthenticator()
     : d(0)
@@ -144,7 +139,7 @@ QAuthenticator::QAuthenticator()
 }
 
 /*!
-  Destructs the object
+  Destructs the object.
 */
 QAuthenticator::~QAuthenticator()
 {
@@ -213,7 +208,7 @@ bool QAuthenticator::operator==(const QAuthenticator &other) const
 */
 
 /*!
-  returns the user used for authentication.
+  Returns the user used for authentication.
 */
 QString QAuthenticator::user() const
 {
@@ -233,7 +228,7 @@ void QAuthenticator::setUser(const QString &user)
 }
 
 /*!
-  returns the password used for authentication.
+  Returns the password used for authentication.
 */
 QString QAuthenticator::password() const
 {
@@ -266,7 +261,7 @@ void QAuthenticator::detach()
 }
 
 /*!
-  returns the realm requiring authentication.
+  Returns the realm requiring authentication.
 */
 QString QAuthenticator::realm() const
 {
@@ -285,10 +280,11 @@ void QAuthenticator::setRealm(const QString &realm)
 /*!
     \since 4.7
     Returns the value related to option \a opt if it was set by the server.
-    See \l{QAuthenticator#Options} for more information on incoming options.
+    See the \l{QAuthenticator#qauthenticator-options}{Options section} for
+    more information on incoming options.
     If option \a opt isn't found, an invalid QVariant will be returned.
 
-    \sa options(), QAuthenticator#Options
+    \sa options(), {QAuthenticator#qauthenticator-options}{QAuthenticator options}
 */
 QVariant QAuthenticator::option(const QString &opt) const
 {
@@ -298,10 +294,10 @@ QVariant QAuthenticator::option(const QString &opt) const
 /*!
     \since 4.7
     Returns all incoming options set in this QAuthenticator object by parsing
-    the server reply. See \l{QAuthenticator#Options} for more information
-    on incoming options.
+    the server reply. See the \l{QAuthenticator#qauthenticator-options}{Options section}
+    for more information on incoming options.
 
-    \sa option(), QAuthenticator#Options
+    \sa option(), {QAuthenticator#qauthenticator-options}{QAuthenticator options}
 */
 QVariantHash QAuthenticator::options() const
 {
@@ -312,9 +308,9 @@ QVariantHash QAuthenticator::options() const
     \since 4.7
 
     Sets the outgoing option \a opt to value \a value.
-    See \l{QAuthenticator#Options} for more information on outgoing options.
+    See the \l{QAuthenticator#qauthenticator-options}{Options section} for more information on outgoing options.
 
-    \sa options(), option(), QAuthenticator#Options
+    \sa options(), option(), {QAuthenticator#qauthenticator-options}{QAuthenticator options}
 */
 void QAuthenticator::setOption(const QString &opt, const QVariant &value)
 {
@@ -324,7 +320,10 @@ void QAuthenticator::setOption(const QString &opt, const QVariant &value)
 
 
 /*!
-    Returns \c true if the authenticator is null.
+    Returns \c true if the object has not been initialized. Returns
+    \c false if non-const member functions have been called, or
+    the content was constructed or copied from another initialized
+    QAuthenticator object.
 */
 bool QAuthenticator::isNull() const
 {
@@ -848,8 +847,6 @@ QByteArray QAuthenticatorPrivate::digestMd5Response(const QByteArray &challenge,
  */
 #define AVTIMESTAMP 7
 
-//#define NTLMV1_CLIENT
-
 
 //************************Global variables***************************
 
@@ -1086,7 +1083,7 @@ static QByteArray qStringAsUcs2Le(const QString& src)
 }
 
 
-static QString qStringFromUcs2Le(const QByteArray& src)
+static QString qStringFromUcs2Le(QByteArray src)
 {
     Q_ASSERT(src.size() % 2 == 0);
     unsigned short *d = (unsigned short*)src.data();
@@ -1096,49 +1093,6 @@ static QString qStringFromUcs2Le(const QByteArray& src)
     return QString((const QChar *)src.data(), src.size()/2);
 }
 
-#ifdef NTLMV1_CLIENT
-static QByteArray qEncodeNtlmResponse(const QAuthenticatorPrivate *ctx, const QNtlmPhase2Block& ch)
-{
-    QCryptographicHash md4(QCryptographicHash::Md4);
-    QByteArray asUcs2Le = qStringAsUcs2Le(ctx->password);
-    md4.addData(asUcs2Le.data(), asUcs2Le.size());
-
-    unsigned char md4hash[22];
-    memset(md4hash, 0, sizeof(md4hash));
-    QByteArray hash = md4.result();
-    Q_ASSERT(hash.size() == 16);
-    memcpy(md4hash, hash.constData(), 16);
-
-    QByteArray rc(24, 0);
-    deshash((unsigned char *)rc.data(), md4hash, (unsigned char *)ch.challenge);
-    deshash((unsigned char *)rc.data() + 8, md4hash + 7, (unsigned char *)ch.challenge);
-    deshash((unsigned char *)rc.data() + 16, md4hash + 14, (unsigned char *)ch.challenge);
-
-    hash.fill(0);
-    return rc;
-}
-
-
-static QByteArray qEncodeLmResponse(const QAuthenticatorPrivate *ctx, const QNtlmPhase2Block& ch)
-{
-    QByteArray hash(21, 0);
-    QByteArray key(14, 0);
-    qstrncpy(key.data(), ctx->password.toUpper().toLatin1(), 14);
-    const char *block = "KGS!@#$%";
-
-    deshash((unsigned char *)hash.data(), (unsigned char *)key.data(), (unsigned char *)block);
-    deshash((unsigned char *)hash.data() + 8, (unsigned char *)key.data() + 7, (unsigned char *)block);
-    key.fill(0);
-
-    QByteArray rc(24, 0);
-    deshash((unsigned char *)rc.data(), (unsigned char *)hash.data(), ch.challenge);
-    deshash((unsigned char *)rc.data() + 8, (unsigned char *)hash.data() + 7, ch.challenge);
-    deshash((unsigned char *)rc.data() + 16, (unsigned char *)hash.data() + 14, ch.challenge);
-
-    hash.fill(0);
-    return rc;
-}
-#endif
 
 /*********************************************************************
 * Function Name: qEncodeHmacMd5
@@ -1457,23 +1411,15 @@ static QByteArray qNtlmPhase3(QAuthenticatorPrivate *ctx, const QByteArray& phas
     pb.workstationStr = ctx->workstation;
 
     // Get LM response
-#ifdef NTLMV1_CLIENT
-    pb.lmResponseBuf = qEncodeLmResponse(ctx, ch);
-#else
     if (ch.targetInfo.len > 0) {
         pb.lmResponseBuf = QByteArray();
     } else {
         pb.lmResponseBuf = qEncodeLmv2Response(ctx, ch, &pb);
     }
-#endif
     offset = qEncodeNtlmBuffer(pb.lmResponse, offset, pb.lmResponseBuf);
 
     // Get NTLM response
-#ifdef NTLMV1_CLIENT
-    pb.ntlmResponseBuf = qEncodeNtlmResponse(ctx, ch);
-#else
     pb.ntlmResponseBuf = qEncodeNtlmv2Response(ctx, ch, &pb);
-#endif
     offset = qEncodeNtlmBuffer(pb.ntlmResponse, offset, pb.ntlmResponseBuf);
 
 

@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -50,12 +50,12 @@ QT_BEGIN_NAMESPACE
     \ingroup printing
     \inmodule QtPrintSupport
 
-    On Windows and Mac OS X the page setup dialog is implemented using
+    On Windows and OS X the page setup dialog is implemented using
     the native page setup dialogs.
 
-    Note that on Windows and Mac OS X custom paper sizes won't be
+    Note that on Windows and OS X custom paper sizes won't be
     reflected in the native page setup dialogs. Additionally, custom
-    page margins set on a QPrinter won't show in the native Mac OS X
+    page margins set on a QPrinter won't show in the native OS X
     page setup dialog.
 
     \sa QPrinter, QPrintDialog
@@ -110,7 +110,7 @@ void QPageSetupDialogPrivate::setPrinter(QPrinter *newPrinter)
         printer = new QPrinter;
         ownsPrinter = true;
     }
-#ifndef Q_WS_X11
+#ifndef Q_DEAD_CODE_FROM_QT4_X11
     if (printer->outputFormat() != QPrinter::NativeFormat)
         qWarning("QPageSetupDialog: Cannot be used on non-native printers");
 #endif

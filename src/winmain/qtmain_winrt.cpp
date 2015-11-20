@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Windows main function of the Qt Toolkit.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -67,7 +67,6 @@ extern "C" {
 #include <qvector.h>
 #include <qdir.h>
 #include <qstandardpaths.h>
-#include <qthread.h>
 
 #include <wrl.h>
 #include <Windows.ApplicationModel.core.h>
@@ -222,11 +221,49 @@ private:
 // Main entry point for Appx containers
 int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+#if _MSC_VER < 1900
     int argc = 0;
     char **argv, **env;
     _startupinfo info = { _query_new_mode() };
     if (int init = __getmainargs(&argc, &argv, &env, false, &info))
         return init;
+#else
+    QByteArray commandLine = QString::fromWCharArray(GetCommandLine()).toUtf8();
+    QVarLengthArray<char *> args;
+    args.append(commandLine.data());
+    bool quote = false;
+    bool escape = false;
+    for (int i = 0; i < commandLine.size(); ++i) {
+        switch (commandLine.at(i)) {
+        case '\\':
+            escape = true;
+            break;
+        case '"':
+            if (escape) {
+                escape = false;
+                break;
+            }
+            quote = !quote;
+            commandLine[i] = '\0';
+            break;
+        case ' ':
+            if (quote)
+                break;
+            commandLine[i] = '\0';
+            if (args.last()[0] != '\0')
+                args.append(commandLine.data() + i + 1);
+            // fall through
+        default:
+            if (args.last()[0] == '\0')
+                args.last() = commandLine.data() + i;
+            escape = false; // only quotes are escaped
+            break;
+        }
+    }
+    int argc = args.size();
+    char **argv = args.data();
+    char **env = Q_NULLPTR;
+#endif // _MSC_VER >= 1900
 
     for (int i = 0; env && env[i]; ++i) {
         QByteArray var(env[i]);
@@ -237,9 +274,6 @@ int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     if (FAILED(RoInitialize(RO_INIT_MULTITHREADED)))
         return 1;
-
-    // Mark the main thread
-    QThread::currentThread();
 
     Core::ICoreApplication *appFactory;
     if (FAILED(RoGetActivationFactory(qHString(CoreApplicationClass), IID_PPV_ARGS(&appFactory))))

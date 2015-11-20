@@ -38,10 +38,10 @@ PRECOMPILED_HEADER = global/qt_pch.h
 # qlogging.cpp uses backtrace(3), which is in a separate library on the BSDs.
 LIBS_PRIVATE += $$QMAKE_LIBS_EXECINFO
 
-linux*:!cross_compile:!static:!*-armcc* {
+if(linux*|hurd*):!cross_compile:!static:!*-armcc* {
    QMAKE_LFLAGS += -Wl,-e,qt_core_boilerplate
    prog=$$quote(if (/program interpreter: (.*)]/) { print $1; })
-   DEFINES += ELF_INTERPRETER=\\\"$$system(readelf -l /bin/ls | perl -n -e \'$$prog\')\\\"
+   DEFINES += ELF_INTERPRETER=\\\"$$system(LC_ALL=C readelf -l /bin/ls | perl -n -e \'$$prog\')\\\"
 }
 
 slog2 {

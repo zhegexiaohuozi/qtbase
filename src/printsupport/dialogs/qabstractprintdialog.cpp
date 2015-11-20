@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -387,13 +387,13 @@ void QAbstractPrintDialogPrivate::setPrinter(QPrinter *newPrinter)
     settings for each available printer can be modified via the dialog's
     \uicontrol{Properties} push button.
 
-    On Windows and Mac OS X, the native print dialog is used, which means that
+    On Windows and OS X, the native print dialog is used, which means that
     some QWidget and QDialog properties set on the dialog won't be respected.
-    The native print dialog on Mac OS X does not support setting printer options,
+    The native print dialog on OS X does not support setting printer options,
     i.e. setOptions() and setOption() have no effect.
 
     In Qt 4.4, it was possible to use the static functions to show a sheet on
-    Mac OS X. This is no longer supported in Qt 4.5. If you want this
+    OS X. This is no longer supported in Qt 4.5. If you want this
     functionality, use QPrintDialog::open().
 
     \sa QPageSetupDialog, QPrinter

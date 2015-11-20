@@ -1,39 +1,31 @@
 /****************************************************************************
 **
 ** Copyright (C) 2014 Jeremy Lainé <jeremy.laine@m4x.org>
-** Contact: http://www.qt-project.org/legal
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
 **
 ** $QT_END_LICENSE$
 **
@@ -43,6 +35,7 @@
 #include "qsslkey_p.h"
 #include "qasn1element_p.h"
 
+#include <QtCore/qdatastream.h>
 #include <QtCore/qcryptographichash.h>
 
 QT_USE_NAMESPACE
@@ -65,6 +58,47 @@ static const quint8 bits_table[256] = {
     8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
     8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
 };
+
+// OIDs of named curves allowed in TLS as per RFCs 4492 and 7027,
+// see also https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+
+typedef QMap<QByteArray, int> OidLengthMap;
+static OidLengthMap createOidMap()
+{
+    OidLengthMap oids;
+    oids.insert(oids.cend(), QByteArrayLiteral("1.2.840.10045.3.1.1"), 192); // secp192r1 a.k.a prime192v1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.2.840.10045.3.1.7"), 256); // secp256r1 a.k.a prime256v1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.1"), 193); // sect193r2
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.10"), 256); // secp256k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.16"), 283); // sect283k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.17"), 283); // sect283r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.26"), 233); // sect233k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.27"), 233); // sect233r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.3"), 239); // sect239k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.30"), 160); // secp160r2
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.31"), 192); // secp192k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.32"), 224); // secp224k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.33"), 224); // secp224r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.34"), 384); // secp384r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.35"), 521); // secp521r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.36"), 409); // sect409k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.37"), 409); // sect409r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.38"), 571); // sect571k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.39"), 571); // sect571r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.8"), 160); // secp160r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.132.0.9"), 160); // secp160k1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.36.3.3.2.8.1.1.11"), 384); // brainpoolP384r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.36.3.3.2.8.1.1.13"), 521); // brainpoolP512r1
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.36.3.3.2.8.1.1.7"), 256); // brainpoolP256r1
+    return oids;
+}
+Q_GLOBAL_STATIC_WITH_ARGS(OidLengthMap, oidLengthMap, (createOidMap()))
+
+static int curveBits(const QByteArray &oid)
+{
+    const int length = oidLengthMap->value(oid);
+    return length ? length : -1;
+}
 
 static int numberOfBits(const QByteArray &modulus)
 {
@@ -153,6 +187,12 @@ void QSslKeyPrivate::decodeDer(const QByteArray &der, bool deepClear)
             if (params.isEmpty() || params[0].type() != QAsn1Element::IntegerType)
                 return;
             keyLength = numberOfBits(params[0].value());
+        } else if (algorithm == QSsl::Ec) {
+            if (infoItems[0].toObjectId() != EC_ENCRYPTION_OID)
+                return;
+            if (infoItems[1].type() != QAsn1Element::ObjectIdentifierType)
+                return;
+            keyLength = curveBits(infoItems[1].toObjectId());
         }
 
     } else {
@@ -161,17 +201,35 @@ void QSslKeyPrivate::decodeDer(const QByteArray &der, bool deepClear)
             return;
 
         // version
-        if (items[0].type() != QAsn1Element::IntegerType || items[0].value().toHex() != "00")
+        if (items[0].type() != QAsn1Element::IntegerType)
             return;
+        const QByteArray versionHex = items[0].value().toHex();
 
         if (algorithm == QSsl::Rsa) {
+            if (versionHex != "00")
+                return;
             if (items.size() != 9 || items[1].type() != QAsn1Element::IntegerType)
                 return;
             keyLength = numberOfBits(items[1].value());
         } else if (algorithm == QSsl::Dsa) {
+            if (versionHex != "00")
+                return;
             if (items.size() != 6 || items[1].type() != QAsn1Element::IntegerType)
                 return;
             keyLength = numberOfBits(items[1].value());
+        } else if (algorithm == QSsl::Ec) {
+            if (versionHex != "01")
+                return;
+            if (items.size() != 4
+               || items[1].type() != QAsn1Element::OctetStringType
+               || items[2].type() != QAsn1Element::Context0Type
+               || items[3].type() != QAsn1Element::Context1Type)
+                return;
+            QAsn1Element oidElem;
+            if (!oidElem.read(items[2].value())
+                || oidElem.type() != QAsn1Element::ObjectIdentifierType)
+                return;
+            keyLength = curveBits(oidElem.toObjectId());
         }
     }
 

@@ -1,39 +1,31 @@
 /****************************************************************************
 **
 ** Copyright (C) 2014 Jeremy Lainé <jeremy.laine@m4x.org>
-** Contact: http://www.qt-project.org/legal
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
 **
 ** $QT_END_LICENSE$
 **
@@ -54,32 +46,32 @@ static OidNameMap createOidMap()
 {
     OidNameMap oids;
     // used by unit tests
-    oids.insert(oids.end(), QByteArrayLiteral("0.9.2342.19200300.100.1.5"), QByteArrayLiteral("favouriteDrink"));
-    oids.insert(oids.end(), QByteArrayLiteral("1.2.840.113549.1.9.1"), QByteArrayLiteral("emailAddress"));
-    oids.insert(oids.end(), QByteArrayLiteral("1.3.6.1.5.5.7.1.1"), QByteArrayLiteral("authorityInfoAccess"));
-    oids.insert(oids.end(), QByteArrayLiteral("1.3.6.1.5.5.7.48.1"), QByteArrayLiteral("OCSP"));
-    oids.insert(oids.end(), QByteArrayLiteral("1.3.6.1.5.5.7.48.2"), QByteArrayLiteral("caIssuers"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.29.14"), QByteArrayLiteral("subjectKeyIdentifier"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.29.15"), QByteArrayLiteral("keyUsage"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.29.17"), QByteArrayLiteral("subjectAltName"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.29.19"), QByteArrayLiteral("basicConstraints"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.29.35"), QByteArrayLiteral("authorityKeyIdentifier"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.10"), QByteArrayLiteral("O"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.11"), QByteArrayLiteral("OU"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.12"), QByteArrayLiteral("title"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.13"), QByteArrayLiteral("description"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.17"), QByteArrayLiteral("postalCode"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.3"), QByteArrayLiteral("CN"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.4"), QByteArrayLiteral("SN"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.41"), QByteArrayLiteral("name"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.42"), QByteArrayLiteral("GN"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.43"), QByteArrayLiteral("initials"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.46"), QByteArrayLiteral("dnQualifier"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.5"), QByteArrayLiteral("serialNumber"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.6"), QByteArrayLiteral("C"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.7"), QByteArrayLiteral("L"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.8"), QByteArrayLiteral("ST"));
-    oids.insert(oids.end(), QByteArrayLiteral("2.5.4.9"), QByteArrayLiteral("street"));
+    oids.insert(oids.cend(), QByteArrayLiteral("0.9.2342.19200300.100.1.5"), QByteArrayLiteral("favouriteDrink"));
+    oids.insert(oids.cend(), QByteArrayLiteral("1.2.840.113549.1.9.1"), QByteArrayLiteral("emailAddress"));
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.6.1.5.5.7.1.1"), QByteArrayLiteral("authorityInfoAccess"));
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.6.1.5.5.7.48.1"), QByteArrayLiteral("OCSP"));
+    oids.insert(oids.cend(), QByteArrayLiteral("1.3.6.1.5.5.7.48.2"), QByteArrayLiteral("caIssuers"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.29.14"), QByteArrayLiteral("subjectKeyIdentifier"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.29.15"), QByteArrayLiteral("keyUsage"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.29.17"), QByteArrayLiteral("subjectAltName"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.29.19"), QByteArrayLiteral("basicConstraints"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.29.35"), QByteArrayLiteral("authorityKeyIdentifier"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.10"), QByteArrayLiteral("O"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.11"), QByteArrayLiteral("OU"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.12"), QByteArrayLiteral("title"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.13"), QByteArrayLiteral("description"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.17"), QByteArrayLiteral("postalCode"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.3"), QByteArrayLiteral("CN"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.4"), QByteArrayLiteral("SN"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.41"), QByteArrayLiteral("name"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.42"), QByteArrayLiteral("GN"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.43"), QByteArrayLiteral("initials"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.46"), QByteArrayLiteral("dnQualifier"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.5"), QByteArrayLiteral("serialNumber"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.6"), QByteArrayLiteral("C"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.7"), QByteArrayLiteral("L"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.8"), QByteArrayLiteral("ST"));
+    oids.insert(oids.cend(), QByteArrayLiteral("2.5.4.9"), QByteArrayLiteral("street"));
     return oids;
 }
 Q_GLOBAL_STATIC_WITH_ARGS(OidNameMap, oidNameMap, (createOidMap()))
@@ -336,10 +328,17 @@ QByteArray QAsn1Element::toObjectName() const
 
 QString QAsn1Element::toString() const
 {
-    if (mType == PrintableStringType || mType == TeletexStringType)
+    // Detect embedded NULs and reject
+    if (qstrlen(mValue) < uint(mValue.size()))
+        return QString();
+
+    if (mType == PrintableStringType || mType == TeletexStringType
+        || mType == Rfc822NameType || mType == DnsNameType
+        || mType == UniformResourceIdentifierType)
         return QString::fromLatin1(mValue, mValue.size());
     if (mType == Utf8StringType)
         return QString::fromUtf8(mValue, mValue.size());
+
     return QString();
 }
 

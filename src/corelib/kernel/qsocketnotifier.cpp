@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -97,42 +97,6 @@ public:
     it is normally used for other types of devices than sockets.
     QTcpSocket and QUdpSocket provide notification through signals, so
     there is normally no need to use a QSocketNotifier on them.
-
-    \section1 Notes for Windows Users
-
-    The socket passed to QSocketNotifier will become non-blocking, even if
-    it was created as a blocking socket.
-    The activated() signal is sometimes triggered by high general activity
-    on the host, even if there is nothing to read. A subsequent read from
-    the socket can then fail, the error indicating that there is no data
-    available (e.g., \c{WSAEWOULDBLOCK}). This is an operating system
-    limitation, and not a bug in QSocketNotifier.
-
-    To ensure that the socket notifier handles read notifications correctly,
-    follow these steps when you receive a notification:
-
-    \list 1
-    \li Disable the notifier.
-    \li Read data from the socket.
-    \li Re-enable the notifier if you are interested in more data (such as after
-       having written a new command to a remote server).
-    \endlist
-
-    To ensure that the socket notifier handles write notifications correctly,
-    follow these steps when you receive a notification:
-
-    \list 1
-    \li Disable the notifier.
-    \li Write as much data as you can (before \c EWOULDBLOCK is returned).
-    \li Re-enable notifier if you have more data to write.
-    \endlist
-
-    \b{Further information:}
-    On Windows, Qt always disables the notifier after getting a notification,
-    and only re-enables it if more data is expected. For example, if data is
-    read from the socket and it can be used to read more, or if reading or
-    writing is not possible because the socket would block, in which case
-    it is necessary to wait before attempting to read or write again.
 
     \sa QFile, QProcess, QTcpSocket, QUdpSocket
 */

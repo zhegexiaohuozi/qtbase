@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtWidgets module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -89,7 +89,7 @@ public:
     {
     public:
         TextEdit(QWidget *parent=0) : QTextEdit(parent) { }
-        void contextMenuEvent(QContextMenuEvent * e)
+        void contextMenuEvent(QContextMenuEvent * e) Q_DECL_OVERRIDE
         {
 #ifndef QT_NO_CONTEXTMENU
             QMenu *menu = createStandardContextMenu();
@@ -167,7 +167,7 @@ public:
     void setLabel(DetailButtonLabel lbl)
     { setText(label(lbl)); }
 
-    QSize sizeHint() const
+    QSize sizeHint() const Q_DECL_OVERRIDE
     {
         ensurePolished();
         QStyleOptionButton opt;
@@ -256,9 +256,9 @@ public:
     QByteArray signalToDisconnectOnClose;
     QSharedPointer<QMessageDialogOptions> options;
 private:
-    void initHelper(QPlatformDialogHelper *);
-    void helperPrepareShow(QPlatformDialogHelper *);
-    void helperDone(QDialog::DialogCode, QPlatformDialogHelper *);
+    void initHelper(QPlatformDialogHelper *) Q_DECL_OVERRIDE;
+    void helperPrepareShow(QPlatformDialogHelper *) Q_DECL_OVERRIDE;
+    void helperDone(QDialog::DialogCode, QPlatformDialogHelper *) Q_DECL_OVERRIDE;
 };
 
 void QMessageBoxPrivate::init(const QString &title, const QString &text)
@@ -580,7 +580,7 @@ void QMessageBoxPrivate::_q_clicked(QPlatformDialogHelper::StandardButton button
 
     This is the approach recommended in the
     \l{http://developer.apple.com/library/mac/documentation/UserExperience/Conceptual/AppleHIGuidelines/Windows/Windows.html#//apple_ref/doc/uid/20000961-BABCAJID}
-    {Mac OS X Guidelines}. Similar guidelines apply for the other
+    {OS X Guidelines}. Similar guidelines apply for the other
     platforms, but note the different ways the
     \l{QMessageBox::informativeText} {informative text} is handled for
     different platforms.
@@ -795,7 +795,7 @@ void QMessageBoxPrivate::_q_clicked(QPlatformDialogHelper::StandardButton button
     Constructs a message box with no text and no buttons. \a parent is
     passed to the QDialog constructor.
 
-    On Mac OS X, if you want your message box to appear
+    On OS X, if you want your message box to appear
     as a Qt::Sheet of its \a parent, set the message box's
     \l{setWindowModality()} {window modality} to Qt::WindowModal or use open().
     Otherwise, the message box will be a standard dialog.
@@ -817,7 +817,7 @@ QMessageBox::QMessageBox(QWidget *parent)
     The message box is an \l{Qt::ApplicationModal} {application modal}
     dialog box.
 
-    On Mac OS X, if \a parent is not 0 and you want your message box
+    On OS X, if \a parent is not 0 and you want your message box
     to appear as a Qt::Sheet of that parent, set the message box's
     \l{setWindowModality()} {window modality} to Qt::WindowModal
     (default). Otherwise, the message box will be a standard dialog.
@@ -985,7 +985,7 @@ QAbstractButton *QMessageBox::button(StandardButton which) const
     \list 1
     \li If there is only one button, it is made the escape button.
     \li If there is a \l Cancel button, it is made the escape button.
-    \li On Mac OS X only, if there is exactly one button with the role
+    \li On OS X only, if there is exactly one button with the role
        QMessageBox::RejectRole, it is made the escape button.
     \endlist
 
@@ -1803,7 +1803,7 @@ QMessageBox::StandardButton QMessageBox::critical(QWidget *parent, const QString
     \li As a last resort it uses the Information icon.
     \endlist
 
-    The about box has a single button labelled "OK". On Mac OS X, the
+    The about box has a single button labelled "OK". On OS X, the
     about box is popped up as a modeless window; on other platforms,
     it is currently application modal.
 
@@ -1857,7 +1857,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
 
     QApplication provides this functionality as a slot.
 
-    On Mac OS X, the about box is popped up as a modeless window; on
+    On OS X, the about box is popped up as a modeless window; on
     other platforms, it is currently application modal.
 
     \sa QApplication::aboutQt()
@@ -1894,18 +1894,18 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
         "want to share any source code with third parties or otherwise cannot "
         "comply with the terms of the GNU LGPL version 3 or GNU LGPL version 2.1.</p>"
         "<p>Qt licensed under the GNU LGPL version 3 is appropriate for the "
-        "development of Qt applications provided you can comply with the terms "
+        "development of Qt&nbsp;applications provided you can comply with the terms "
         "and conditions of the GNU LGPL version 3.</p>"
         "<p>Qt licensed under the GNU LGPL version 2.1 is appropriate for the "
-        "development of Qt applications provided you can comply with the terms "
+        "development of Qt&nbsp;applications provided you can comply with the terms "
         "and conditions of the GNU LGPL version 2.1.</p>"
         "<p>Please see <a href=\"http://%2/\">%2</a> "
         "for an overview of Qt licensing.</p>"
-        "<p>Copyright (C) %1 Digia Plc and/or its subsidiary(-ies) and other "
+        "<p>Copyright (C) %1 The Qt Company Ltd and other "
         "contributors.</p>"
-        "<p>Qt and the Qt logo are trademarks of Digia Plc and/or its subsidiary(-ies).</p>"
-        "<p>Qt is a Digia product developed as an open source project. See <a href=\"http://%3/\">%3</a> "
-        "for more information.</p>"
+        "<p>Qt and the Qt logo are trademarks of The Qt Company Ltd.</p>"
+        "<p>Qt is The Qt Company Ltd product developed as an open source "
+        "project. See <a href=\"http://%3/\">%3</a> for more information.</p>"
         ).arg(QStringLiteral("2015"),
               QStringLiteral("qt.io/licensing"),
               QStringLiteral("qt.io"));
@@ -2622,8 +2622,8 @@ void QMessageBox::setInformativeText(const QString &text)
 
     This function shadows QWidget::setWindowTitle().
 
-    Sets the title of the message box to \a title. On Mac OS X,
-    the window title is ignored (as required by the Mac OS X
+    Sets the title of the message box to \a title. On OS X,
+    the window title is ignored (as required by the OS X
     Guidelines).
 */
 void QMessageBox::setWindowTitle(const QString &title)
@@ -2644,7 +2644,7 @@ void QMessageBox::setWindowTitle(const QString &title)
 
     Sets the modality of the message box to \a windowModality.
 
-    On Mac OS X, if the modality is set to Qt::WindowModal and the message box
+    On OS X, if the modality is set to Qt::WindowModal and the message box
     has a parent, then the message box will be a Qt::Sheet, otherwise the
     message box will be a standard dialog.
 */

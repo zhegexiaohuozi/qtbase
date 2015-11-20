@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 The Qt Company Ltd.
 ** Copyright (C) 2012 Intel Corporation.
-** Contact: http://www.qt-project.org/legal
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -11,9 +11,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -24,8 +24,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -35,6 +35,10 @@
 #include "qsimd_p.h"
 #include <QByteArray>
 #include <stdio.h>
+
+#ifdef Q_OS_LINUX
+#  include "../testlib/3rdparty/valgrind_p.h"
+#endif
 
 #if defined(Q_OS_WIN)
 #  if defined(Q_OS_WINCE)
@@ -254,8 +258,12 @@ static inline uint detectProcessorFeatures()
 
     uint features = 0;
     int cpuidLevel = maxBasicCpuidSupported();
+#if Q_PROCESSOR_X86 < 5
     if (cpuidLevel < 1)
         return 0;
+#else
+    Q_ASSERT(cpuidLevel >= 1);
+#endif
 
     uint cpuid01ECX = 0, cpuid01EDX = 0;
     cpuidFeatures01(cpuid01ECX, cpuid01EDX);
@@ -495,8 +503,7 @@ static const int features_indices[] = {
 static const int features_count = (sizeof features_indices - 1) / (sizeof features_indices[0]);
 
 // record what CPU features were enabled by default in this Qt build
-// don't define for HLE, since the HLE prefix can be run on older CPUs
-static const uint minFeature = qCompilerCpuFeatures & ~HLE;
+static const uint minFeature = qCompilerCpuFeatures;
 
 #ifdef Q_OS_WIN
 #if defined(Q_CC_GNU)
@@ -512,7 +519,9 @@ int ffs(int i)
 #endif
 }
 #endif
-#endif // Q_OS_WIN
+#elif defined(Q_OS_ANDROID)
+# define ffs __builtin_ffs
+#endif
 
 QBasicAtomicInt qt_cpu_features = Q_BASIC_ATOMIC_INITIALIZER(0);
 
@@ -550,7 +559,12 @@ void qDetectCpuFeatures()
         }
     }
 
-    if (minFeature != 0 && (f & minFeature) != minFeature) {
+#ifdef RUNNING_ON_VALGRIND
+    bool runningOnValgrind = RUNNING_ON_VALGRIND;
+#else
+    bool runningOnValgrind = false;
+#endif
+    if (!runningOnValgrind && (minFeature != 0 && (f & minFeature) != minFeature)) {
         uint missing = minFeature & ~f;
         fprintf(stderr, "Incompatible processor. This Qt build requires the following features:\n   ");
         for (int i = 0; i < features_count; ++i) {

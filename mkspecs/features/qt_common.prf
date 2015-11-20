@@ -24,16 +24,19 @@ contains(TEMPLATE, .*lib) {
         rplbase = $$dirname(_QMAKE_SUPER_CACHE_)/[^/][^/]*
     else: \
         rplbase = $$MODULE_BASE_OUTDIR
-    host_build: \
+    host_build {
+        qqt_libdir = \$\$\$\$[QT_HOST_LIBS]
         qt_libdir = $$[QT_HOST_LIBS]
-    else: \
-        qt_libdir = $$[QT_INSTALL_LIBS/raw]
+    } else {
+        qqt_libdir = \$\$\$\$[QT_INSTALL_LIBS]
+        qt_libdir = $$[QT_INSTALL_LIBS]
+    }
     contains(QMAKE_DEFAULT_LIBDIRS, $$qt_libdir) {
         lib_replace.match = "[^ ']*$$rplbase/lib"
         lib_replace.replace =
     } else {
         lib_replace.match = $$rplbase/lib
-        lib_replace.replace = $$qt_libdir
+        lib_replace.replace = $$qqt_libdir
     }
     lib_replace.CONFIG = path
     QMAKE_PRL_INSTALL_REPLACE += lib_replace
@@ -45,10 +48,10 @@ warnings_are_errors:warning_clean {
     # compiler.
     clang {
         # Apple clang 4.0-4.2,5.0-5.1
-        # Regular clang 3.3 & 3.4
+        # Regular clang 3.3-3.6
         apple_ver = $${QT_APPLE_CLANG_MAJOR_VERSION}.$${QT_APPLE_CLANG_MINOR_VERSION}
         reg_ver = $${QT_CLANG_MAJOR_VERSION}.$${QT_CLANG_MINOR_VERSION}
-        contains(apple_ver, "4\\.[012]|5\\.[01]")|contains(reg_ver, "3\\.[34]") {
+        contains(apple_ver, "4\\.[012]|5\\.[01]")|contains(reg_ver, "3\\.[3-6]") {
             QMAKE_CXXFLAGS_WARN_ON += -Werror -Wno-error=\\$${LITERAL_HASH}warnings -Wno-error=deprecated-declarations $$WERROR
         }
     } else:intel_icc:linux {
@@ -64,9 +67,9 @@ warnings_are_errors:warning_clean {
             QMAKE_CXXFLAGS_WARN_ON += -Werror -ww177,1224,1478,1881 $$WERROR
         }
     } else:gcc:!clang:!intel_icc {
-        # GCC 4.6-4.9
+        # GCC 4.6-4.9, 5.x
         ver = $${QT_GCC_MAJOR_VERSION}.$${QT_GCC_MINOR_VERSION}
-        contains(ver, "4\\.[6789]") {
+        contains(ver, "(4\\.[6789]|5\\..)") {
             QMAKE_CXXFLAGS_WARN_ON += -Werror -Wno-error=cpp -Wno-error=deprecated-declarations $$WERROR
 
             # GCC prints this bogus warning, after it has inlined a lot of code
@@ -76,6 +79,9 @@ warnings_are_errors:warning_clean {
             # Work-around for bug https://code.google.com/p/android/issues/detail?id=58135
             android: QMAKE_CXXFLAGS_WARN_ON += -Wno-error=literal-suffix
         }
+    } else:msvc {
+        # enable for MSVC 2012, MSVC 2013
+        equals(MSVC_VER, "11.0")|equals(MSVC_VER, "12.0"): QMAKE_CXXFLAGS_WARN_ON += -WX
     }
     unset(ver)
 }

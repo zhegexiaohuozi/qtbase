@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -234,7 +234,7 @@ QDateTime &QFileInfoPrivate::getFileTime(QAbstractFileEngine::FileTime request) 
     isSymLink(). The symLinkTarget() function provides the name of the file
     the symlink points to.
 
-    On Unix (including Mac OS X), the symlink has the same size() has
+    On Unix (including OS X and iOS), the symlink has the same size() has
     the file it points to, because Unix handles symlinks
     transparently; similarly, opening a symlink using QFile
     effectively opens the link's target. For example:
@@ -263,6 +263,7 @@ QDateTime &QFileInfoPrivate::getFileTime(QAbstractFileEngine::FileTime request) 
     groupId(). You can examine a file's permissions and ownership in a
     single statement using the permission() function.
 
+    \target NTFS permissions
     \note On NTFS file systems, ownership and permissions checking is
     disabled by default for performance reasons. To enable it,
     include the following line:
@@ -753,7 +754,7 @@ QString QFileInfo::fileName() const
     \since 4.3
     Returns the name of the bundle.
 
-    On Mac OS X this returns the proper localized name for a bundle if the
+    On OS X and iOS this returns the proper localized name for a bundle if the
     path isBundle(). On all other platforms an empty QString is returned.
 
     Example:
@@ -893,6 +894,9 @@ QDir QFileInfo::absoluteDir() const
 /*!
     Returns \c true if the user can read the file; otherwise returns \c false.
 
+    \note If the \l{NTFS permissions} check has not been enabled, the result
+    on Windows will merely reflect whether the file exists.
+
     \sa isWritable(), isExecutable(), permission()
 */
 bool QFileInfo::isReadable() const
@@ -910,6 +914,9 @@ bool QFileInfo::isReadable() const
 
 /*!
     Returns \c true if the user can write to the file; otherwise returns \c false.
+
+    \note If the \l{NTFS permissions} check has not been enabled, the result on
+    Windows will merely reflect whether the file is marked as Read Only.
 
     \sa isReadable(), isExecutable(), permission()
 */
@@ -1029,7 +1036,7 @@ bool QFileInfo::isDir() const
 /*!
     \since 4.3
     Returns \c true if this object points to a bundle or to a symbolic
-    link to a bundle on Mac OS X; otherwise returns \c false.
+    link to a bundle on OS X and iOS; otherwise returns \c false.
 
     \sa isDir(), isSymLink(), isFile()
 */
@@ -1050,7 +1057,7 @@ bool QFileInfo::isBundle() const
     Returns \c true if this object points to a symbolic link (or to a
     shortcut on Windows); otherwise returns \c false.
 
-    On Unix (including Mac OS X), opening a symlink effectively opens
+    On Unix (including OS X and iOS), opening a symlink effectively opens
     the \l{symLinkTarget()}{link's target}. On Windows, it opens the \c
     .lnk file itself.
 
@@ -1137,7 +1144,8 @@ QString QFileInfo::readLink() const
     returned.
 
     This function can be time consuming under Unix (in the order of
-    milliseconds).
+    milliseconds). On Windows, it will return an empty string unless
+    the \l{NTFS permissions} check has been enabled.
 
     \sa ownerId(), group(), groupId()
 */
@@ -1217,6 +1225,9 @@ uint QFileInfo::groupId() const
     On systems where files do not have permissions this function
     always returns \c true.
 
+    \note The result might be inaccurate on Windows if the
+    \l{NTFS permissions} check has not been enabled.
+
     Example:
     \snippet code/src_corelib_io_qfileinfo.cpp 10
 
@@ -1240,6 +1251,9 @@ bool QFileInfo::permission(QFile::Permissions permissions) const
 /*!
     Returns the complete OR-ed together combination of
     QFile::Permissions for the file.
+
+    \note The result might be inaccurate on Windows if the
+    \l{NTFS permissions} check has not been enabled.
 */
 QFile::Permissions QFileInfo::permissions() const
 {

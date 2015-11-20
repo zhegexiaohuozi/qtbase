@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -257,3 +257,23 @@ glDisable(GL_SCISSOR_TEST);
 
 painter.endNativePainting();
 //! [21]
+
+//! [drawText]
+QPainter painter(this);
+QFont font = painter.font();
+font.setPixelSize(48);
+painter.setFont(font);
+
+const QRect rectangle = QRect(0, 0, 100, 50);
+QRect boundingRect;
+painter.drawText(rectangle, 0, tr("Hello"), &boundingRect);
+
+QPen pen = painter.pen();
+pen.setStyle(Qt::DotLine);
+painter.setPen(pen);
+painter.drawRect(boundingRect.adjusted(0, 0, -pen.width(), -pen.width()));
+
+pen.setStyle(Qt::DashLine);
+painter.setPen(pen);
+painter.drawRect(rectangle.adjusted(0, 0, -pen.width(), -pen.width()));
+//! [drawText]

@@ -82,12 +82,12 @@ CONFIG(static, static|shared)|prefix_build {
 target.path = $$[QT_INSTALL_PLUGINS]/$$PLUGIN_TYPE
 INSTALLS += target
 
-TARGET = $$qtLibraryTarget($$TARGET)
+TARGET = $$qt5LibraryTarget($$TARGET)
 
 CONFIG += create_cmake
 
 load(qt_targets)
 load(qt_common)
 
-wince*:LIBS += $$QMAKE_LIBS_GUI
+wince: LIBS += $$QMAKE_LIBS_GUI
 QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF

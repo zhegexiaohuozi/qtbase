@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -110,22 +110,22 @@ QT_BEGIN_NAMESPACE
 
     \endlist
 
-    \section1 Notes for Mac OS X Users
+    \section1 Notes for OS X Users
 
-    Mac OS X supports a separate find buffer that holds the current
+    OS X supports a separate find buffer that holds the current
     search string in Find operations. This find clipboard can be accessed
     by specifying the FindBuffer mode.
 
-    \section1 Notes for Windows and Mac OS X Users
+    \section1 Notes for Windows and OS X Users
 
     \list
 
-    \li Windows and Mac OS X do not support the global mouse
+    \li Windows and OS X do not support the global mouse
     selection; they only supports the global clipboard, i.e. they
     only add text to the clipboard when an explicit copy or cut is
     made.
 
-    \li Windows and Mac OS X does not have the concept of ownership;
+    \li Windows and OS X does not have the concept of ownership;
     the clipboard is a fully global resource so all applications are
     notified of changes.
 
@@ -181,7 +181,7 @@ QClipboard::~QClipboard()
 
     This signal is emitted when the clipboard data is changed.
 
-    On Mac OS X and with Qt version 4.3 or higher, clipboard
+    On OS X and with Qt version 4.3 or higher, clipboard
     changes made by other applications will only be detected
     when the application is activated.
 
@@ -193,7 +193,7 @@ QClipboard::~QClipboard()
 
     This signal is emitted when the selection is changed. This only
     applies to windowing systems that support selections, e.g. X11.
-    Windows and Mac OS X don't support selections.
+    Windows and OS X don't support selections.
 
     \sa dataChanged(), findBufferChanged(), changed()
 */
@@ -203,7 +203,7 @@ QClipboard::~QClipboard()
     \since 4.2
 
     This signal is emitted when the find buffer is changed. This only
-    applies to Mac OS X.
+    applies to OS X.
 
     With Qt version 4.3 or higher, clipboard changes made by other
     applications will only be detected when the application is activated.
@@ -226,7 +226,7 @@ QClipboard::~QClipboard()
     systems with a global mouse selection (e.g. X11).
 
     \value FindBuffer indicates that data should be stored and retrieved from
-    the Find buffer. This mode is used for holding search strings on Mac OS X.
+    the Find buffer. This mode is used for holding search strings on OS X.
 
     \omitvalue LastMode
 
@@ -584,6 +584,6 @@ void QClipboard::emitChanged(Mode mode)
     emit changed(mode);
 }
 
-#endif // QT_NO_CLIPBOARD
-
 QT_END_NAMESPACE
+
+#endif // QT_NO_CLIPBOARD

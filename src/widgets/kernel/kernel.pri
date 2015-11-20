@@ -49,6 +49,7 @@ SOURCES += \
 	kernel/qlayoutengine.cpp \
 	kernel/qlayoutitem.cpp \
         kernel/qshortcut.cpp \
+        kernel/qsizepolicy.cpp \
         kernel/qstackedlayout.cpp \
 	kernel/qtooltip.cpp \
 	kernel/qwhatsthis.cpp \
@@ -68,7 +69,7 @@ macx: {
     SOURCES += kernel/qmacgesturerecognizer.cpp
 }
 
-wince*: {
+wince {
         HEADERS += \
                 ../corelib/kernel/qfunctions_wince.h \
                 kernel/qwidgetsfunctions_wince.h

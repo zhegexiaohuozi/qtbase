@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 //#define DEBUG_HEADER
 //#define DEBUG_FONTENGINE
 
-static QFontEngineQPF2::TagType tagTypes[QFontEngineQPF2::NumTags] = {
+static const QFontEngineQPF2::TagType tagTypes[QFontEngineQPF2::NumTags] = {
     QFontEngineQPF2::StringType, // FontName
     QFontEngineQPF2::StringType, // FileName
     QFontEngineQPF2::UInt32Type, // FileIndex
@@ -322,9 +322,9 @@ bool QFontEngineQPF2::getSfntTableData(uint tag, uchar *buffer, uint *length) co
 
 glyph_t QFontEngineQPF2::glyphIndex(uint ucs4) const
 {
-    glyph_t glyph = getTrueTypeGlyphIndex(cmap, ucs4);
+    glyph_t glyph = getTrueTypeGlyphIndex(cmap, cmapSize, ucs4);
     if (glyph == 0 && symbol && ucs4 < 0x100)
-        glyph = getTrueTypeGlyphIndex(cmap, ucs4 + 0xf000);
+        glyph = getTrueTypeGlyphIndex(cmap, cmapSize, ucs4 + 0xf000);
     if (!findGlyph(glyph))
         glyph = 0;
 
@@ -348,16 +348,16 @@ bool QFontEngineQPF2::stringToCMap(const QChar *str, int len, QGlyphLayout *glyp
         QStringIterator it(str, str + len);
         while (it.hasNext()) {
             const uint uc = it.next();
-            glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, uc);
+            glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, cmapSize, uc);
             if(!glyphs->glyphs[glyph_pos] && uc < 0x100)
-                glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, uc + 0xf000);
+                glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, cmapSize, uc + 0xf000);
             ++glyph_pos;
         }
     } else {
         QStringIterator it(str, str + len);
         while (it.hasNext()) {
             const uint uc = it.next();
-            glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, uc);
+            glyphs->glyphs[glyph_pos] = getTrueTypeGlyphIndex(cmap, cmapSize, uc);
 #if 0 && defined(DEBUG_FONTENGINE)
             QChar c(uc);
             if (!findGlyph(glyphs[glyph_pos].glyph) && !seenGlyphs.contains(c))
@@ -396,7 +396,7 @@ QImage QFontEngineQPF2::alphaMapForGlyph(glyph_t g)
 
     const uchar *bits = ((const uchar *) glyph) + sizeof(Glyph);
 
-    QImage image(bits,glyph->width, glyph->height, glyph->bytesPerLine, QImage::Format_Indexed8);
+    QImage image(bits,glyph->width, glyph->height, glyph->bytesPerLine, QImage::Format_Alpha8);
 
     return image;
 }

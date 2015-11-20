@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
 **
@@ -10,15 +10,15 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Free Documentation License Usage
 ** Alternatively, this file may be used under the terms of the GNU Free
 ** Documentation License version 1.3 as published by the Free Software
 ** Foundation and appearing in the file included in the packaging of
-** this file.  Please review the following information to ensure
+** this file. Please review the following information to ensure
 ** the GNU Free Documentation License version 1.3 requirements
 ** will be met: http://www.gnu.org/copyleft/fdl.html.
 ** $QT_END_LICENSE$
@@ -80,7 +80,7 @@
     the QPalette::Button role to red for a QPushButton to obtain a
     red push button. However, this wasn't guaranteed to work for all
     styles, because style authors are restricted by the different
-    platforms' guidelines and (on Windows XP and Mac OS X) by the
+    platforms' guidelines and (on Windows XP and OS X) by the
     native theme engine.
 
     Style sheets let you perform all kinds of customizations that are
@@ -121,7 +121,7 @@
     \row \li \inlineimage stylesheet-coffee-cleanlooks.png
          \li \inlineimage stylesheet-pagefold-mac.png
     \row \li Coffee theme running on Ubuntu Linux
-         \li Pagefold theme running on Mac OS X
+         \li Pagefold theme running on OS X
     \endtable
 
     When a style sheet is active, the QStyle returned by QWidget::style()
@@ -130,10 +130,8 @@
     otherwise forwards the drawing operations to the underlying,
     platform-specific style (e.g., QWindowsXPStyle on Windows XP).
 
-    Since Qt 4.5, Qt style sheets fully supports Mac OS X.
+    Since Qt 4.5, Qt style sheets fully supports OS X.
 
-    \warning Qt style sheets are currently not supported for custom QStyle
-    subclasses. We plan to address this in some future release.
 */
 
 /*!
@@ -3747,7 +3745,7 @@
     \snippet code/doc_src_stylesheet.qdoc 135
 
     If you want the scroll buttons of the scroll bar to be placed together
-    (instead of the edges) like on Mac OS X, you can use the following
+    (instead of the edges) like on OS X, you can use the following
     stylesheet:
     \snippet code/doc_src_stylesheet.qdoc 136
 

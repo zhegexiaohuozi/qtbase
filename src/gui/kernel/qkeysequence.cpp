@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
 **
@@ -10,9 +10,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -23,8 +23,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -193,7 +193,7 @@ void Q_GUI_EXPORT qt_set_sequence_auto_mnemonic(bool b) { qt_sequence_no_mnemoni
 
     QKeySequence objects can be cast to a QString to obtain a human-readable
     translated version of the sequence. Similarly, the toString() function
-    produces human-readable strings for use in menus. On Mac OS X, the
+    produces human-readable strings for use in menus. On OS X, the
     appropriate symbols are used to describe keyboard shortcuts using special
     keys on the Macintosh keyboard.
 
@@ -201,12 +201,12 @@ void Q_GUI_EXPORT qt_set_sequence_auto_mnemonic(bool b) { qt_sequence_no_mnemoni
     code point of the character; for example, 'A' gives the same key sequence
     as Qt::Key_A.
 
-    \b{Note:} On Mac OS X, references to "Ctrl", Qt::CTRL, Qt::Control
+    \b{Note:} On OS X, references to "Ctrl", Qt::CTRL, Qt::Control
     and Qt::ControlModifier correspond to the \uicontrol Command keys on the
     Macintosh keyboard, and references to "Meta", Qt::META, Qt::Meta and
     Qt::MetaModifier correspond to the \uicontrol Control keys. Developers on
-    Mac OS X can use the same shortcut descriptions across all platforms,
-    and their applications will automatically work as expected on Mac OS X.
+    OS X can use the same shortcut descriptions across all platforms,
+    and their applications will automatically work as expected on OS X.
 
     \section1 Standard Shortcuts
 
@@ -215,12 +215,12 @@ void Q_GUI_EXPORT qt_set_sequence_auto_mnemonic(bool b) { qt_sequence_no_mnemoni
     setting up actions in a typical application. The table below shows
     some common key sequences that are often used for these standard
     shortcuts by applications on four widely-used platforms.  Note
-    that on Mac OS X, the \uicontrol Ctrl value corresponds to the \uicontrol
+    that on OS X, the \uicontrol Ctrl value corresponds to the \uicontrol
     Command keys on the Macintosh keyboard, and the \uicontrol Meta value
     corresponds to the \uicontrol Control keys.
 
     \table
-    \header \li StandardKey      \li Windows                              \li Mac OS X                 \li KDE          \li GNOME
+    \header \li StandardKey      \li Windows                              \li OS X                 \li KDE          \li GNOME
     \row    \li HelpContents     \li F1                                   \li Ctrl+?                   \li F1           \li F1
     \row    \li WhatsThis        \li Shift+F1                             \li Shift+F1                 \li Shift+F1     \li Shift+F1
     \row    \li Open             \li Ctrl+O                               \li Ctrl+O                   \li Ctrl+O       \li Ctrl+O
@@ -289,6 +289,7 @@ void Q_GUI_EXPORT qt_set_sequence_auto_mnemonic(bool b) { qt_sequence_no_mnemoni
     \row    \li DeleteCompleteLine   \li (none)                           \li (none)                 \li Ctrl+U         \li Ctrl+U
     \row    \li InsertParagraphSeparator     \li Enter                    \li Enter                  \li Enter          \li Enter
     \row    \li InsertLineSeparator          \li Shift+Enter              \li Meta+Enter, Meta+O     \li Shift+Enter    \li Shift+Enter
+    \row    \li Backspace             \li (none)                          \li Meta+H                 \li (none)         \li (none)
     \endtable
 
     Note that, since the key sequences used for the standard shortcuts differ
@@ -663,6 +664,9 @@ static const struct {
     { Qt::Key_Play,  QT_TRANSLATE_NOOP("QShortcut", "Play") },
     { Qt::Key_Zoom,  QT_TRANSLATE_NOOP("QShortcut", "Zoom") },
     { Qt::Key_Exit,  QT_TRANSLATE_NOOP("QShortcut", "Exit") },
+    { Qt::Key_TouchpadToggle,  QT_TRANSLATE_NOOP("QShortcut", "Touchpad Toggle") },
+    { Qt::Key_TouchpadOn,  QT_TRANSLATE_NOOP("QShortcut", "Touchpad On") },
+    { Qt::Key_TouchpadOff,  QT_TRANSLATE_NOOP("QShortcut", "Touchpad Off") },
 
     { 0, 0 }
 };
@@ -679,6 +683,7 @@ static const struct {
 
     \value AddTab           Add new tab.
     \value Back             Navigate back.
+    \value Backspace        Delete previous character.
     \value Bold             Bold text.
     \value Close            Close document/tab.
     \value Copy             Copy.
@@ -1201,7 +1206,7 @@ QString QKeySequencePrivate::encodeString(int key, QKeySequence::SequenceFormat 
 
 #if defined(Q_OS_MACX)
     if (nativeText) {
-        // On Mac OS X the order (by default) is Meta, Alt, Shift, Control.
+        // On OS X the order (by default) is Meta, Alt, Shift, Control.
         // If the AA_MacDontSwapCtrlAndMeta is enabled, then the order
         // is Ctrl, Alt, Shift, Meta. The macSymbolForQtKey does this swap
         // for us, which means that we have to adjust our order here.
@@ -1474,7 +1479,7 @@ bool QKeySequence::isDetached() const
 
     If the key sequence has no keys, an empty string is returned.
 
-    On Mac OS X, the string returned resembles the sequence that is
+    On OS X, the string returned resembles the sequence that is
     shown in the menu bar.
 
     \sa fromString()
@@ -1596,8 +1601,9 @@ QDataStream &operator>>(QDataStream &s, QKeySequence &keysequence)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, const QKeySequence &p)
 {
+    QDebugStateSaver saver(dbg);
     dbg.nospace() << "QKeySequence(" << p.toString() << ')';
-    return dbg.space();
+    return dbg;
 }
 #endif
 

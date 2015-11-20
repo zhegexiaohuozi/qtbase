@@ -1,39 +1,31 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
 **
 ** $QT_END_LICENSE$
 **
@@ -87,12 +79,12 @@ QT_USE_NAMESPACE
 
 - (void)QT_MANGLE_NAMESPACE(qt_setDockMenu):(NSMenu *)newMenu
 {
-    [[QCocoaApplicationDelegate sharedDelegate] setDockMenu:newMenu];
+    [[QT_MANGLE_NAMESPACE(QCocoaApplicationDelegate) sharedDelegate] setDockMenu:newMenu];
 }
 
 - (QT_MANGLE_NAMESPACE(QCocoaMenuLoader) *)QT_MANGLE_NAMESPACE(qt_qcocoamenuLoader)
 {
-    return [[QCocoaApplicationDelegate sharedDelegate] menuLoader];
+    return [[QT_MANGLE_NAMESPACE(QCocoaApplicationDelegate) sharedDelegate] menuLoader];
 }
 
 - (int)QT_MANGLE_NAMESPACE(qt_validModesForFontPanel):(NSFontPanel *)fontPanel
@@ -106,7 +98,7 @@ QT_USE_NAMESPACE
             | NSFontPanelStrikethroughEffectModeMask;
 }
 
-- (void)qt_sendPostedMessage:(NSEvent *)event
+- (void)QT_MANGLE_NAMESPACE(qt_sendPostedMessage):(NSEvent *)event
 {
     // WARNING: data1 and data2 is truncated to from 64-bit to 32-bit on OS 10.5!
     // That is why we need to split the address in two parts:
@@ -134,16 +126,16 @@ QT_USE_NAMESPACE
 
 static const QByteArray q_macLocalEventType = QByteArrayLiteral("mac_generic_NSEvent");
 
-- (BOOL)qt_filterEvent:(NSEvent *)event
+- (BOOL)QT_MANGLE_NAMESPACE(qt_filterEvent):(NSEvent *)event
 {
     if (qApp && qApp->eventDispatcher()->
             filterNativeEvent(q_macLocalEventType, static_cast<void*>(event), 0))
         return true;
 
     if ([event type] == NSApplicationDefined) {
-        switch ([event subtype]) {
+        switch (static_cast<short>([event subtype])) {
             case QtCocoaEventSubTypePostMessage:
-                [NSApp qt_sendPostedMessage:event];
+                [NSApp QT_MANGLE_NAMESPACE(qt_sendPostedMessage):event];
                 return true;
             default:
                 break;
@@ -155,9 +147,9 @@ static const QByteArray q_macLocalEventType = QByteArrayLiteral("mac_generic_NSE
 
 @end
 
-@implementation QNSApplication
+@implementation QT_MANGLE_NAMESPACE(QNSApplication)
 
-- (void)qt_sendEvent_original:(NSEvent *)event
+- (void)QT_MANGLE_NAMESPACE(qt_sendEvent_original):(NSEvent *)event
 {
     Q_UNUSED(event);
     // This method will only be used as a signature
@@ -165,21 +157,21 @@ static const QByteArray q_macLocalEventType = QByteArrayLiteral("mac_generic_NSE
     // containing the original [NSApplication sendEvent:] implementation
 }
 
-- (void)qt_sendEvent_replacement:(NSEvent *)event
+- (void)QT_MANGLE_NAMESPACE(qt_sendEvent_replacement):(NSEvent *)event
 {
     // This method (or its implementation to be precise) will
     // be called instead of sendEvent if redirection occurs.
     // 'self' will then be an instance of NSApplication
     // (and not QNSApplication)
-    if (![NSApp qt_filterEvent:event])
-        [self qt_sendEvent_original:event];
+    if (![NSApp QT_MANGLE_NAMESPACE(qt_filterEvent):event])
+        [self QT_MANGLE_NAMESPACE(qt_sendEvent_original):event];
 }
 
 - (void)sendEvent:(NSEvent *)event
 {
     // This method will be called if
     // no redirection occurs
-    if (![NSApp qt_filterEvent:event])
+    if (![NSApp QT_MANGLE_NAMESPACE(qt_filterEvent):event])
         [super sendEvent:event];
 }
 
@@ -195,7 +187,7 @@ void qt_redirectNSApplicationSendEvent()
         // can be unloaded.
         return;
 
-    if ([NSApp isMemberOfClass:[QNSApplication class]]) {
+    if ([NSApp isMemberOfClass:[QT_MANGLE_NAMESPACE(QNSApplication) class]]) {
         // No need to change implementation since Qt
         // already controls a subclass of NSApplication
         return;
@@ -208,9 +200,9 @@ void qt_redirectNSApplicationSendEvent()
     qt_cocoa_change_implementation(
             [NSApplication class],
             @selector(sendEvent:),
-            [QNSApplication class],
-            @selector(qt_sendEvent_replacement:),
-            @selector(qt_sendEvent_original:));
+            [QT_MANGLE_NAMESPACE(QNSApplication) class],
+            @selector(QT_MANGLE_NAMESPACE(qt_sendEvent_replacement):),
+            @selector(QT_MANGLE_NAMESPACE(qt_sendEvent_original):));
  }
 
 void qt_resetNSApplicationSendEvent()

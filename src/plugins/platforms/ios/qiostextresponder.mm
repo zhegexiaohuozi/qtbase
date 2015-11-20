@@ -1,39 +1,31 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
 **
 ** $QT_END_LICENSE$
 **
@@ -174,8 +166,9 @@
     m_inSelectionChange = NO;
     m_inputContext = inputContext;
 
-    QVariantMap platformData = [self imValue:Qt::ImPlatformData].toMap();
-    Qt::InputMethodHints hints = Qt::InputMethodHints([self imValue:Qt::ImHints].toUInt());
+    m_configuredImeState = new QInputMethodQueryEvent(m_inputContext->imeState().currentState);
+    QVariantMap platformData = m_configuredImeState->value(Qt::ImPlatformData).toMap();
+    Qt::InputMethodHints hints = Qt::InputMethodHints(m_configuredImeState->value(Qt::ImHints).toUInt());
 
     self.returnKeyType = platformData.value(kImePlatformDataReturnKeyType).isValid() ?
         UIReturnKeyType(platformData.value(kImePlatformDataReturnKeyType).toInt()) :
@@ -203,7 +196,11 @@
     else if (hints & Qt::ImhFormattedNumbersOnly)
         self.keyboardType = UIKeyboardTypeDecimalPad;
     else if (hints & Qt::ImhDialableCharactersOnly)
-        self.keyboardType = UIKeyboardTypeNumberPad;
+        self.keyboardType = UIKeyboardTypePhonePad;
+    else if (hints & Qt::ImhLatinOnly)
+        self.keyboardType = UIKeyboardTypeASCIICapable;
+    else if (hints & Qt::ImhPreferNumbers)
+        self.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
     else
         self.keyboardType = UIKeyboardTypeDefault;
 
@@ -212,6 +209,9 @@
     if (UIView *accessoryView = static_cast<UIView *>(platformData.value(kImePlatformDataInputAccessoryView).value<void *>()))
         self.inputAccessoryView = [[[WrapperView alloc] initWithView:accessoryView] autorelease];
 
+    self.undoManager.groupsByEvent = NO;
+    [self rebuildUndoStack];
+
     return self;
 }
 
@@ -219,7 +219,40 @@
 {
     self.inputView = 0;
     self.inputAccessoryView = 0;
+    delete m_configuredImeState;
+
     [super dealloc];
+}
+
+- (BOOL)needsKeyboardReconfigure:(Qt::InputMethodQueries)updatedProperties
+{
+    if ((updatedProperties & Qt::ImEnabled)) {
+        Q_ASSERT([self currentImeState:Qt::ImEnabled].toBool());
+
+        // When switching on input-methods we need to consider hints and platform data
+        // as well, as the IM state that we were based on may have been invalidated when
+        // IM was switched off.
+
+        qImDebug() << "IM was turned on, we need to check hints and platform data as well";
+        updatedProperties |= (Qt::ImHints | Qt::ImPlatformData);
+    }
+
+    // Based on what we set up in initWithInputContext above
+    updatedProperties &= (Qt::ImHints | Qt::ImPlatformData);
+
+    if (!updatedProperties)
+        return NO;
+
+    for (uint i = 0; i < (sizeof(Qt::ImQueryAll) * CHAR_BIT); ++i) {
+        if (Qt::InputMethodQuery property = Qt::InputMethodQuery(int(updatedProperties & (1 << i)))) {
+            if ([self currentImeState:property] != m_configuredImeState->value(property)) {
+                qImDebug() << property << "has changed since text responder was configured, need reconfigure";
+                return YES;
+            }
+        }
+    }
+
+    return NO;
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -266,7 +299,7 @@
     if ([UIResponder currentFirstResponder] == [self nextResponder]) {
         // We have resigned the keyboard, and transferred first responder back to the parent view
         Q_ASSERT(!FirstResponderCandidate::currentCandidate());
-        if ([self imValue:Qt::ImEnabled].toBool()) {
+        if ([self currentImeState:Qt::ImEnabled].toBool()) {
             // The current focus object expects text input, but there
             // is no keyboard to get input from. So we clear focus.
             qImDebug() << "no keyboard available, clearing focus object";
@@ -289,6 +322,185 @@
     return qApp->focusWindow() ?
         reinterpret_cast<QUIView *>(qApp->focusWindow()->handle()->winId()) : 0;
 }
+
+// -------------------------------------------------------------------------
+
+- (void)sendKeyPressRelease:(Qt::Key)key modifiers:(Qt::KeyboardModifiers)modifiers
+{
+    QWindowSystemInterface::handleKeyEvent(qApp->focusWindow(), QEvent::KeyPress, key, modifiers);
+    QWindowSystemInterface::handleKeyEvent(qApp->focusWindow(), QEvent::KeyRelease, key, modifiers);
+}
+
+#ifndef QT_NO_SHORTCUT
+
+- (void)sendShortcut:(QKeySequence::StandardKey)standardKey
+{
+    const int keys = QKeySequence(standardKey)[0];
+    Qt::Key key = Qt::Key(keys & 0x0000FFFF);
+    Qt::KeyboardModifiers modifiers = Qt::KeyboardModifiers(keys & 0xFFFF0000);
+    [self sendKeyPressRelease:key modifiers:modifiers];
+}
+
+- (void)cut:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Cut];
+}
+
+- (void)copy:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Copy];
+}
+
+- (void)paste:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Paste];
+}
+
+- (void)selectAll:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::SelectAll];
+}
+
+- (void)delete:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Delete];
+}
+
+- (void)toggleBoldface:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Bold];
+}
+
+- (void)toggleItalics:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Italic];
+}
+
+- (void)toggleUnderline:(id)sender
+{
+    Q_UNUSED(sender);
+    [self sendShortcut:QKeySequence::Underline];
+}
+
+// -------------------------------------------------------------------------
+
+- (void)undo
+{
+    [self sendShortcut:QKeySequence::Undo];
+    [self rebuildUndoStack];
+}
+
+- (void)redo
+{
+    [self sendShortcut:QKeySequence::Redo];
+    [self rebuildUndoStack];
+}
+
+- (void)registerRedo
+{
+    NSUndoManager *undoMgr = self.undoManager;
+    [undoMgr beginUndoGrouping];
+    [undoMgr registerUndoWithTarget:self selector:@selector(redo) object:nil];
+    [undoMgr endUndoGrouping];
+}
+
+- (void)rebuildUndoStack
+{
+    dispatch_async(dispatch_get_main_queue (), ^{
+        // Register dummy undo/redo operations to enable Cmd-Z and Cmd-Shift-Z
+        // Ensure we do this outside any undo/redo callback since NSUndoManager
+        // will treat registerUndoWithTarget as registering a redo when called
+        // from within a undo callback.
+        NSUndoManager *undoMgr = self.undoManager;
+        [undoMgr removeAllActions];
+        [undoMgr beginUndoGrouping];
+        [undoMgr registerUndoWithTarget:self selector:@selector(undo) object:nil];
+        [undoMgr endUndoGrouping];
+
+        // Schedule an operation that we immediately pop off to be able to schedule a redo
+        [undoMgr beginUndoGrouping];
+        [undoMgr registerUndoWithTarget:self selector:@selector(registerRedo) object:nil];
+        [undoMgr endUndoGrouping];
+        [undoMgr undo];
+
+        // Note that, perhaps because of a bug in UIKit, the buttons on the shortcuts bar ends up
+        // disabled if a undo/redo callback doesn't lead to a [UITextInputDelegate textDidChange].
+        // And we only call that method if Qt made changes to the text. The effect is that the buttons
+        // become disabled when there is nothing more to undo (Qt didn't change anything upon receiving
+        // an undo request). This seems to be OK behavior, so we let it stay like that unless it shows
+        // to cause problems.
+    });
+}
+
+// -------------------------------------------------------------------------
+
+- (void)keyCommandTriggered:(UIKeyCommand *)keyCommand
+{
+    Qt::Key key = Qt::Key_unknown;
+    Qt::KeyboardModifiers modifiers = Qt::NoModifier;
+
+    if (keyCommand.input == UIKeyInputLeftArrow)
+        key = Qt::Key_Left;
+    else if (keyCommand.input == UIKeyInputRightArrow)
+        key = Qt::Key_Right;
+    else if (keyCommand.input == UIKeyInputUpArrow)
+        key = Qt::Key_Up;
+    else if (keyCommand.input == UIKeyInputDownArrow)
+        key = Qt::Key_Down;
+    else
+        Q_UNREACHABLE();
+
+    if (keyCommand.modifierFlags & UIKeyModifierAlternate)
+        modifiers |= Qt::AltModifier;
+    if (keyCommand.modifierFlags & UIKeyModifierShift)
+        modifiers |= Qt::ShiftModifier;
+    if (keyCommand.modifierFlags & UIKeyModifierCommand)
+        modifiers |= Qt::ControlModifier;
+
+    [self sendKeyPressRelease:key modifiers:modifiers];
+}
+
+- (void)addKeyCommandsToArray:(NSMutableArray *)array key:(NSString *)key
+{
+    SEL s = @selector(keyCommandTriggered:);
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:0 action:s]];
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:UIKeyModifierShift action:s]];
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:UIKeyModifierAlternate action:s]];
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:UIKeyModifierAlternate|UIKeyModifierShift action:s]];
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:UIKeyModifierCommand action:s]];
+    [array addObject:[UIKeyCommand keyCommandWithInput:key modifierFlags:UIKeyModifierCommand|UIKeyModifierShift action:s]];
+}
+
+- (NSArray *)keyCommands
+{
+    // Since keyCommands is called for every key
+    // press/release, we cache the result
+    static dispatch_once_t once;
+    static NSMutableArray *array;
+
+    dispatch_once(&once, ^{
+        // We let Qt move the cursor around when the arrow keys are being used. This
+        // is normally implemented through UITextInput, but since IM in Qt have poor
+        // support for moving the cursor vertically, and even less support for selecting
+        // text across multiple paragraphs, we do this through key events.
+        array = [NSMutableArray new];
+        [self addKeyCommandsToArray:array key:UIKeyInputUpArrow];
+        [self addKeyCommandsToArray:array key:UIKeyInputDownArrow];
+        [self addKeyCommandsToArray:array key:UIKeyInputLeftArrow];
+        [self addKeyCommandsToArray:array key:UIKeyInputRightArrow];
+    });
+
+    return array;
+}
+
+#endif // QT_NO_SHORTCUT
 
 // -------------------------------------------------------------------------
 
@@ -328,7 +540,7 @@
     QCoreApplication::sendEvent(focusObject, &e);
 }
 
-- (QVariant)imValue:(Qt::InputMethodQuery)query
+- (QVariant)currentImeState:(Qt::InputMethodQuery)query
 {
     return m_inputContext->imeState().currentState.value(query);
 }
@@ -345,7 +557,7 @@
 
 -(UITextPosition *)endOfDocument
 {
-    int endPosition = [self imValue:Qt::ImSurroundingText].toString().length();
+    int endPosition = [self currentImeState:Qt::ImSurroundingText].toString().length();
     return [QUITextPosition positionWithIndex:endPosition];
 }
 
@@ -369,8 +581,8 @@
 
 - (UITextRange *)selectedTextRange
 {
-    int cursorPos = [self imValue:Qt::ImCursorPosition].toInt();
-    int anchorPos = [self imValue:Qt::ImAnchorPosition].toInt();
+    int cursorPos = [self currentImeState:Qt::ImCursorPosition].toInt();
+    int anchorPos = [self currentImeState:Qt::ImAnchorPosition].toInt();
     return [QUITextRange rangeWithNSRange:NSMakeRange(qMin(cursorPos, anchorPos), qAbs(anchorPos - cursorPos))];
 }
 
@@ -378,7 +590,7 @@
 {
     int s = static_cast<QUITextPosition *>([range start]).index;
     int e = static_cast<QUITextPosition *>([range end]).index;
-    return [self imValue:Qt::ImSurroundingText].toString().mid(s, e - s).toNSString();
+    return [self currentImeState:Qt::ImSurroundingText].toString().mid(s, e - s).toNSString();
 }
 
 - (void)setMarkedText:(NSString *)markedText selectedRange:(NSRange)selectedRange
@@ -448,7 +660,17 @@
 - (UITextPosition *)positionFromPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset
 {
     int p = static_cast<QUITextPosition *>(position).index;
-    return [QUITextPosition positionWithIndex:(direction == UITextLayoutDirectionRight ? p + offset : p - offset)];
+
+    switch (direction) {
+    case UITextLayoutDirectionLeft:
+        return [QUITextPosition positionWithIndex:p - offset];
+    case UITextLayoutDirectionRight:
+        return [QUITextPosition positionWithIndex:p + offset];
+    default:
+        // Qt doesn't support getting the position above or below the current position, so
+        // for those cases we just return the current position, making it a no-op.
+        return position;
+    }
 }
 
 - (UITextPosition *)positionWithinRange:(UITextRange *)range farthestInDirection:(UITextLayoutDirection)direction
@@ -490,8 +712,8 @@
     if (!m_markedText.isEmpty())
         return CGRectZero;
 
-    int cursorPos = [self imValue:Qt::ImCursorPosition].toInt();
-    int anchorPos = [self imValue:Qt::ImAnchorPosition].toInt();
+    int cursorPos = [self currentImeState:Qt::ImCursorPosition].toInt();
+    int anchorPos = [self currentImeState:Qt::ImAnchorPosition].toInt();
 
     NSRange r = static_cast<QUITextRange*>(range).range;
     QList<QInputMethodEvent::Attribute> attrs;
@@ -508,12 +730,21 @@
 
     if (cursorPos != int(r.location + r.length) || cursorPos != anchorPos) {
         attrs = QList<QInputMethodEvent::Attribute>();
-        attrs << QInputMethodEvent::Attribute(QInputMethodEvent::Selection, cursorPos, (cursorPos - anchorPos), 0);
+        attrs << QInputMethodEvent::Attribute(QInputMethodEvent::Selection, qMin(cursorPos, anchorPos), qAbs(cursorPos - anchorPos), 0);
         e = QInputMethodEvent(m_markedText, attrs);
         [self sendEventToFocusObject:e];
     }
 
     return toCGRect(startRect.united(endRect));
+}
+
+- (NSArray *)selectionRectsForRange:(UITextRange *)range
+{
+    Q_UNUSED(range);
+    // This method is supposed to return a rectangle for each line with selection. Since we don't
+    // expose an API in Qt/IM for getting this information, and since we never seems to be getting
+    // a call from UIKit for this, we return an empty array until a need arise.
+    return [[NSArray new] autorelease];
 }
 
 - (CGRect)caretRectForPosition:(UITextPosition *)position
@@ -555,7 +786,7 @@
     int p = static_cast<QUITextPosition *>(position).index;
     if (direction == UITextLayoutDirectionLeft)
         return [QUITextRange rangeWithNSRange:NSMakeRange(0, p)];
-    int l = [self imValue:Qt::ImSurroundingText].toString().length();
+    int l = [self currentImeState:Qt::ImSurroundingText].toString().length();
     return [QUITextRange rangeWithNSRange:NSMakeRange(p, l - p)];
 }
 
@@ -563,7 +794,7 @@
 {
     // No API in Qt for determining this. Use sensible default instead:
     Q_UNUSED(point);
-    return [QUITextPosition positionWithIndex:[self imValue:Qt::ImCursorPosition].toInt()];
+    return [QUITextPosition positionWithIndex:[self currentImeState:Qt::ImCursorPosition].toInt()];
 }
 
 - (UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange *)range
@@ -571,14 +802,14 @@
     // No API in Qt for determining this. Use sensible default instead:
     Q_UNUSED(point);
     Q_UNUSED(range);
-    return [QUITextPosition positionWithIndex:[self imValue:Qt::ImCursorPosition].toInt()];
+    return [QUITextPosition positionWithIndex:[self currentImeState:Qt::ImCursorPosition].toInt()];
 }
 
 - (UITextRange *)characterRangeAtPoint:(CGPoint)point
 {
     // No API in Qt for determining this. Use sensible default instead:
     Q_UNUSED(point);
-    return [QUITextRange rangeWithNSRange:NSMakeRange([self imValue:Qt::ImCursorPosition].toInt(), 0)];
+    return [QUITextRange rangeWithNSRange:NSMakeRange([self currentImeState:Qt::ImCursorPosition].toInt(), 0)];
 }
 
 - (void)setMarkedTextStyle:(NSDictionary *)style
@@ -626,10 +857,7 @@
         return;
 
     if ([text isEqualToString:@"\n"]) {
-        QKeyEvent press(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
-        QKeyEvent release(QEvent::KeyRelease, Qt::Key_Return, Qt::NoModifier);
-        [self sendEventToFocusObject:press];
-        [self sendEventToFocusObject:release];
+        [self sendKeyPressRelease:Qt::Key_Return modifiers:Qt::NoModifier];
 
         if (self.returnKeyType == UIReturnKeyDone)
             [self resignFirstResponder];
@@ -644,13 +872,10 @@
 
 - (void)deleteBackward
 {
-    // Since we're posting im events directly to the focus object, we should do the
-    // same for key events. Otherwise they might end up in a different place or out
-    // of sync with im events.
-    QKeyEvent press(QEvent::KeyPress, (int)Qt::Key_Backspace, Qt::NoModifier);
-    QKeyEvent release(QEvent::KeyRelease, (int)Qt::Key_Backspace, Qt::NoModifier);
-    [self sendEventToFocusObject:press];
-    [self sendEventToFocusObject:release];
+    // UITextInput selects the text to be deleted before calling this method. To avoid
+    // drawing the selection, we flush after posting the key press/release.
+    [self sendKeyPressRelease:Qt::Key_Backspace modifiers:Qt::NoModifier];
+    QWindowSystemInterface::flushWindowSystemEvents();
 }
 
 @end

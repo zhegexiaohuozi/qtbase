@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 The Qt Company Ltd.
 ** Copyright (C) 2013 Intel Corporation
-** Contact: http://www.qt-project.org/legal
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
 **
@@ -11,9 +11,9 @@
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
@@ -24,8 +24,8 @@
 ** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
 ** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
@@ -51,8 +51,8 @@ static inline bool simdEncodeAscii(uchar *&dst, const ushort *&nextAscii, const 
 {
     // do sixteen characters at a time
     for ( ; end - src >= 16; src += 16, dst += 16) {
-        __m128i data1 = _mm_loadu_si128((__m128i*)src);
-        __m128i data2 = _mm_loadu_si128(1+(__m128i*)src);
+        __m128i data1 = _mm_loadu_si128((const __m128i*)src);
+        __m128i data2 = _mm_loadu_si128(1+(const __m128i*)src);
 
 
         // check if everything is ASCII
@@ -90,7 +90,7 @@ static inline bool simdDecodeAscii(ushort *&dst, const uchar *&nextAscii, const 
 {
     // do sixteen characters at a time
     for ( ; end - src >= 16; src += 16, dst += 16) {
-        __m128i data = _mm_loadu_si128((__m128i*)src);
+        __m128i data = _mm_loadu_si128((const __m128i*)src);
 
 #ifdef __AVX2__
         const int BitSpacing = 2;
@@ -390,7 +390,7 @@ QString QUtf8::convertToUnicode(const char *chars, int len, QTextCodec::Converte
             *dst++ = QChar::ReplacementCharacter;
     }
 
-    result.truncate(dst - (ushort *)result.unicode());
+    result.truncate(dst - (const ushort *)result.unicode());
     if (state) {
         state->invalidChars += invalid;
         if (headerdone)
@@ -469,7 +469,7 @@ QString QUtf16::convertToUnicode(const char *chars, int len, QTextCodec::Convert
         endian = (QSysInfo::ByteOrder == QSysInfo::BigEndian) ? BigEndianness : LittleEndianness;
 
     QString result(len, Qt::Uninitialized); // worst case
-    QChar *qch = (QChar *)result.unicode();
+    QChar *qch = (QChar *)result.data();
     while (len--) {
         if (half) {
             QChar ch;
@@ -600,7 +600,7 @@ QString QUtf32::convertToUnicode(const char *chars, int len, QTextCodec::Convert
 
     QString result;
     result.resize((num + len) >> 2 << 1); // worst case
-    QChar *qch = (QChar *)result.unicode();
+    QChar *qch = (QChar *)result.data();
 
     const char *end = chars + len;
     while (chars < end) {
