@@ -46,7 +46,7 @@
 class PhantomIntegrationPlugin : public QPlatformIntegrationPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.2" FILE "phantom.json")
+    Q_PLUGIN_METADATA(IID QPlatformIntegrationFactoryInterface_iid FILE "phantom.json")
 public:
     PhantomIntegration *create(const QString&, const QStringList&);
 };
